@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Food Recipe Finder Application</title>
+
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&display=swap");
+
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+        padding: 0;
+        font-family: Public Sans, sans-serif;
+        color: #ffffff;
+      }
+
+      .food-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background-color: #a52a2a;
+        border-radius: 10px;
+      }
+
+      .item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+
+      .item img {
+        display: block;
+        margin: 0 auto; /* Center the image horizontally */
+        border-radius: 10px;
+      }
+
+      .title {
+        margin-top: 10px;
+        font-family: Oswald, sans-serif;
+      }
+
+      .view-btn {
+        margin: 0;
+        color: #808080;
+      }
+
+      .view-btn:hover {
+        margin: 0;
+        color: black;
+      }
+
+      .recipe-desc {
+        margin-top: 10px;
+      }
+
+      .search {
+        padding: 20px;
+        overflow-y: scroll; /* Enable vertical scrolling */
+      }
+
+      input[type="text"] {
+        padding: 10px;
+        margin-right: 10px;
+        border-radius: 5px;
+        border: none;
+        text-align: center;
+      }
+
+      button {
+        padding: 10px 20px;
+        border-radius: 5px;
+        border: none;
+        color: #ffffff;
+        background-color: #808080;
+        cursor: pointer;
+        margin-top: 20px;
+      }
+
+      .warn {
+        font-size: 15px;
+        margin: 0;
+        color: #000000;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="food-container">
+      <h1 style="font-family: Oswald, sans-serif">
+        Food Recipe Search Application
+      </h1>
+      <div id="search"></div>
+      <input type="text" placeholder="Enter a food" id="search-bar" />
+      <button id="search-btn">Search</button>
+      <p>By realskyquest</p>
+      <p class="warn">Recipe's may not be shown if the API is overloaded</p>
+      <p class="warn">Edamam's Recipe Search API</p>
+      <p class="warn">API calls limits = 10,000 month</p>
+      <p class="warn">Throttling calls/min = 10/minute</p>
+    </div>
+
+    <script>
+      // Get references to the search elements
+      const searchResult = document.querySelector("#search");
+      const searchBtn = document.querySelector("#search-btn");
+      const searchBar = document.querySelector("#search-bar");
+
+      // Add event listener to search button
+      searchBtn.addEventListener("click", () => {
+        const food = searchBar.value;
+        searchResult.classList.add("search");
+        GetRecipeData(food);
+      });
+
+      // Edamam API credentials
+      const ID = "a475e62e";
+      const key = "0207e33a4ec6161825a143c43fa12b6e";
+
+      // Function to fetch recipe data from Edamam API
+      async function GetRecipeData(searchData) {
+        var userQuery = searchData;
+        const baseUrl = `https://api.edamam.com/search?q=${userQuery}&app_id=${ID}&app_key=${key}`;
+        const response = await fetch(baseUrl);
+        const data = await response.json();
+        ShowRecipes(data.hits);
+        console.log(data);
+      }
+
+      // Function to display recipes on the page
+      function ShowRecipes(results) {
+        let initialContent = "";
+        results.map((result) => {
+          initialContent += `<div class="item">
+        <img src="${result.recipe.image}" alt="">
+        <div class="flex-container">
+            <h1 class='title'>${result.recipe.label}</h1>
+            <a class='view-btn' href='${result.recipe.url}'>View Recipe</a>
+        </div>
+        <p class='recipe-desc'>Calories : ${result.recipe.calories.toFixed(
+          2
+        )}</p>
+    </div>`;
+        });
+
+        searchResult.innerHTML = initialContent;
+      }
+    </script>
+  </body>
+</html>
