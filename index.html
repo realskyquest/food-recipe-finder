@@ -13,18 +13,35 @@
     </div>
 
     <div class="w3-container w3-dark-grey w3-margin">
-        <div class="w3-row-padding w3-center w3-margin w3-dark-gray">
-            <div class="w3-half">
-              <div class="w3-card w3-margin">
-                <input type="text" placeholder="Enter a food" id="search-bar" class="w3-input" style="text-align: center;"/>
-              </div>
-            </div>
-            <div class="w3-half">
-              <div class="w3-card w3-left-align w3-margin">
-                <button id="search-btn" class="w3-button w3-block w3-gray">Search</button>
-              </div>
-            </div>
+      <div class="w3-row-padding w3-center w3-margin w3-dark-gray">
+        <div class="w3-half">
+          <div class="w3-card w3-margin">
+            <input
+              type="text"
+              placeholder="Enter a food"
+              id="search-bar"
+              class="w3-input"
+              style="text-align: center"
+            />
           </div>
+        </div>
+        <div class="w3-half">
+          <div class="w3-card w3-left-align w3-margin">
+            <button id="search-btn" class="w3-button w3-block w3-gray">
+              Search
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="w3-container w3-center">
+      <div id="success" class="w3-panel w3-green w3-hide">
+        <p>Success: Food found in database</p>
+      </div>
+      <div id="error" class="w3-panel w3-red w3-hide">
+        <p>Error: Food not found in database</p>
+      </div>
     </div>
 
     <div id="searchResults" class="w3-content"></div>
@@ -32,12 +49,13 @@
     <div class="w3-container w3-dark-grey">
       <div class="w3-panel w3-red">
         <p>
-          Recipe's may not be shown if the API is overloaded<br>
-          Edamam's Recipe Search API<br>
-          API calls limits = 10,000 month<br>
-          Throttling calls/min = 10/minute<br>
+          This uses spoonacular free api<br>
+          150 api call's per day<br>
+          1 request/s allowed<br>
+          Forum Support is available<br>
+          Backlink Required<br>
         </p>
-      </div>       
+      </div>
       <div class="w3-panel w3-leftbar w3-white">
         <p>
           <i>By skyquest</i> -
@@ -55,57 +73,86 @@
       const searchBtn = document.querySelector("#search-btn");
       const searchBar = document.querySelector("#search-bar");
 
+      const apiKey = "696bcff22d0649e894d22a361d2c9524";
+      const url = "https://api.spoonacular.com/recipes/";
+
       searchBtn.addEventListener("click", () => {
         const food = searchBar.value;
-        GetRecipeData(food);
+        SearchRecipe(url, apiKey, food);
       });
 
-      const ID = "a475e62e";
-      const key = "0207e33a4ec6161825a143c43fa12b6e";
+      function SearchRecipe(url, apiKey, food) {
+        const fetchUrl = `${url}complexSearch?apiKey=${apiKey}&query=${food}&number=10&addRecipeInformation=true`;
 
-      async function GetRecipeData(searchData) {
-        const baseUrl = `https://api.edamam.com/search?q=${searchData}&app_id=${ID}&app_key=${key}`;
-        const response = await fetch(baseUrl);
-        const data = await response.json();
-        ShowRecipes(data.hits);
-        console.log(data);
+        fetch(fetchUrl)
+          .then(function (response) {
+            if (response.ok) {
+              return response.json();
+            } else {
+              throw new Error("Network response was not ok");
+            }
+          })
+          .then(function (data) {
+            if (data.results.length > 0) {
+              const successElement = document.querySelector("#success");
+              const errorElement = document.querySelector("#error");
+              successElement.className = "w3-panel w3-green w3-animate-zoom";
+              errorElement.className = "w3-panel w3-red w3-hide";
+
+              console.log(data.results);
+              DisplayRecipes(data.results);
+            } else {
+              const successElement = document.querySelector("#success");
+              const errorElement = document.querySelector("#error");
+              successElement.className = "w3-panel w3-green w3-hide";
+              errorElement.className = "w3-panel w3-red w3-animate-zoom";
+
+              searchResult.innerHTML = "";
+              console.error("Food not found");
+            }
+          })
+          .catch(function (error) {
+            console.log("Error:", error);
+          });
       }
 
-      function ShowRecipes(results) {
+      function DisplayRecipes(results) {
         let initialContent = "";
-        results.map((result) => {
+
+        for (let i = 0; i < results.length; i++) {
           initialContent += `
-          <div class="w3-row w3-margin w3-dark-grey">
-            <div class="w3-third">
-                <div class="w3-container w3-margin">
-                    <img src="${result.recipe.image}" class="w3-round-xlarge" style="width:100%;min-height:200px">
+            <div class="w3-row w3-margin w3-dark-grey">
+              <div class="w3-third">
+                <div class="w3-card-4 w3-margin w3-round-xlarge">
+                  <img src="${results[i].image}" class="w3-round-xlarge style="width:100%; min-height:200px">
                 </div>
-            </div>
-            <div class="w3-twothird w3-container">
+                <div class="w3-container w3-center w3-green w3-round-large w3-margin-left w3-margin-bottom">
+                  <h3>${results[i].title}</h3>
+                </div>
+              </div>
+              <div class="w3-twothird w3-container">
                 <div class="w3-container w3-margin w3-white w3-round-xlarge">
-                  <div class="w3-green w3-round-large">
-                    <h1>${result.recipe.label}</h1>
-                  </div>
                   <div class="w3-panel w3-pale-blue w3-leftbar w3-rightbar w3-border-blue">
-                    <p style="margin: 0"><a href='${result.recipe.url}'>View Recipe</a></p>
+                    <p style="margin: 0"><a href='${results[i].spoonacularSourceUrl}' target="_blank">View more information</a></p>
+                    <p style="margin: 0"><a href='${results[i].sourceUrl}' target="_blank">View source</a></p>
                   </div>
-                  <div class="w3-panel w3-leftbar w3-pale-red w3-border-red">
-                    <p style="margin: 0;">Cautions : ${result.recipe.cautions.join(', ')}</p>
-                  </div>
-                  <div class="w3-container w3-blue w3-margin-bottom w3-margin-top w3-round-large">
-                    <p style="margin: 0;">Calories : ${result.recipe.calories.toFixed(2)}</p>
-                    <p style="margin: 0;">Total Weight : ${result.recipe.totalWeight.toFixed(2)}</p>
-                    <p style="margin: 0;">Energy : ${result.recipe.totalNutrients.ENERC_KCAL.quantity.toFixed(2)} ${result.recipe.totalNutrients.ENERC_KCAL.unit}</p>
-                    <p style="margin: 0;">Fat : ${result.recipe.totalNutrients.FAT.quantity.toFixed(2)} ${result.recipe.totalNutrients.FAT.unit}</p>
+                  <div class="w3-panel w3-leftbar w3-pale-red w3-border-red w3-margin-bottom" style="margin: 0;">
+                    <p>
+                      Health Score: ${results[i].healthScore}<br>
+                      Dairy Free: ${results[i].dairyFree}<br>
+                      Gluten Free: ${results[i].glutenFree}<br>
+                      LowFodmap: ${results[i].lowFodmap}<br>
+                      vegetarian: ${results[i].vegetarian}<br>
+                      Very Healthy: ${results[i].veryHealthy}<br>
+                    </p>
                   </div>
                 </div>
-            </div>
-          </div>`;
-        });
+              </div>
+            </div>`;
+        }
 
         searchResult.innerHTML = initialContent;
       }
-
     </script>
   </body>
 </html>
